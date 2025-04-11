@@ -1,10 +1,12 @@
-from astrapy.db import AstraDB
-import embedding_create
 import os
 
+from astrapy import DataAPIClient
+
+from embedding_create import create_embeddings
+
 # Fetching necessary environment variables for AstraDB configuration
-ASTRA_DB_APPLICATION_TOKEN = os.environ.get("ASTRA_DB_APPLICATION_TOKEN")
-ASTRA_DB_API_ENDPOINT = os.environ.get("ASTRA_DB_API_ENDPOINT")
+ASTRA_DB_APPLICATION_TOKEN = os.environ["ASTRA_DB_APPLICATION_TOKEN"]
+ASTRA_DB_API_ENDPOINT = os.environ["ASTRA_DB_API_ENDPOINT"]
 ASTRA_DB_KEYSPACE = os.environ.get("ASTRA_DB_KEYSPACE")
 COLLECTION_NAME = "town_content"
 
@@ -23,34 +25,36 @@ queries = [
 ]
 
 # Generating embeddings for each query using a custom embedding creation function
-embeddings = embedding_create.create_embeddings(queries)
+embedding_list = create_embeddings(queries)
 
 # Establishing a connection to Astra DB with the provided credentials and keyspace
-db = AstraDB(
+client = DataAPIClient()
+db = client.get_database(
+    ASTRA_DB_API_ENDPOINT,
     token=ASTRA_DB_APPLICATION_TOKEN,
-    api_endpoint=ASTRA_DB_API_ENDPOINT,
-    namespace=ASTRA_DB_KEYSPACE,
+    keyspace=ASTRA_DB_KEYSPACE,
 )
 
-# Accessing the specified collection in the Astra DB
-collection = db.collection(collection_name=COLLECTION_NAME)
+# Get (an astrapy reference to) the db collection
+collection = db.get_collection(name=COLLECTION_NAME)
 
 # Iterating through each query to perform a similarity search in the database
-for index, query in enumerate(queries):
-    # Converting the embedding to a list for the query
-    embedding = embeddings[index].tolist()
-
-    # Defining the sorting, options, and projection for the database query
-    sort = {"$vector": embedding}
-    options = {"limit": 2}
-    projection = {"$similarity": 1, "text": 1}
-
+for embedding, query in zip(embedding_list, queries):
     # Executing the find operation on the collection with the specified parameters
-    document_list = collection.find(sort=sort, options=options, projection=projection)
+    search_results = collection.find(
+        sort={"$vector": embedding.tolist()},
+        limit=2,
+        projection={"text": True},
+        include_similarity=True,
+    )
 
-    print(query)
+    print("=" * 30)
+    print(f"QUESTION: {query}")
+    print("-" * 30)
     # Iterating through the retrieved documents to print their content
-    for document in document_list["data"]["documents"]:
+    for document in search_results:
         print(document["text"])
-        print(document["$similarity"])
-        print("\n\n")
+        print(f"    [Similarity: {document['$similarity']:.4f}]")
+        print("\n")
+
+    print("\n\n")
