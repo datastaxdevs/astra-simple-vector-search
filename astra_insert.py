@@ -6,8 +6,9 @@ from astrapy import DataAPIClient
 from doc_chunker import chunk_file
 from embedding_create import create_embeddings
 
-ASTRA_DB_APPLICATION_TOKEN = os.environ.get("ASTRA_DB_APPLICATION_TOKEN")
-ASTRA_DB_API_ENDPOINT = os.environ.get("ASTRA_DB_API_ENDPOINT")
+# Fetching necessary environment variables for AstraDB configuration
+ASTRA_DB_APPLICATION_TOKEN = os.environ["ASTRA_DB_APPLICATION_TOKEN"]
+ASTRA_DB_API_ENDPOINT = os.environ["ASTRA_DB_API_ENDPOINT"]
 ASTRA_DB_KEYSPACE = os.environ.get("ASTRA_DB_KEYSPACE")
 COLLECTION_NAME = "town_content"
 

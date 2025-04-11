@@ -5,8 +5,8 @@ from astrapy import DataAPIClient
 from embedding_create import create_embeddings
 
 # Fetching necessary environment variables for AstraDB configuration
-ASTRA_DB_APPLICATION_TOKEN = os.environ.get("ASTRA_DB_APPLICATION_TOKEN")
-ASTRA_DB_API_ENDPOINT = os.environ.get("ASTRA_DB_API_ENDPOINT")
+ASTRA_DB_APPLICATION_TOKEN = os.environ["ASTRA_DB_APPLICATION_TOKEN"]
+ASTRA_DB_API_ENDPOINT = os.environ["ASTRA_DB_API_ENDPOINT"]
 ASTRA_DB_KEYSPACE = os.environ.get("ASTRA_DB_KEYSPACE")
 COLLECTION_NAME = "town_content"
 
@@ -54,7 +54,7 @@ for embedding, query in zip(embedding_list, queries):
     # Iterating through the retrieved documents to print their content
     for document in search_results:
         print(document["text"])
-        print(f"    [Similarity: {document["$similarity"]:.4f}]")
+        print(f"    [Similarity: {document['$similarity']:.4f}]")
         print("\n")
 
     print("\n\n")
